@@ -1,0 +1,495 @@
+#Inicio dos estudos com seleções (SELEC) simples
+#o Exercício pede para selecionar os ID dos produtos que tenham baixa gordura e sejam recicláveis
+Select product_id
+from products
+where low_fats = 'y' and recyclable = 'y'
+
+#Output
+| product_id |
+| ---------- |
+| 1          |
+| 3          |
+
+################
+#Agora devemos selecionar os nomes que não tenham sido referidos pelo cliente 2 'id=2'
+select name
+from customer
+where referee_id <> 2 or referee_id is null;
+
+#Output
+| name |
+| ---- |
+| Will |
+| Jane |
+| Bill |
+| Zack |
+
+################
+#Selecionar o país que é considerado grande. Para isso precisa ser de no mínimo 3.000.000 km² e/ou uma população 25.000.000
+#Pede-se uma tabela onde tenha name, population, area
+
+Select name, population, area
+from World
+where area >= 3000000 or population >= 25000000
+
+#Output: 
++-------------+------------+---------+
+| name        | population | area    |
++-------------+------------+---------+
+| Afghanistan | 25500100   | 652230  |
+| Algeria     | 37100000   | 2381741 |
++-------------+------------+---------+
+
+################
+#Selecionar os autores que viram, pelo menos uma vez, seu próprio artigo. E retornar o ID pela ordem crescente
+
+select distinct author_id as id
+from views
+where viewer_id = author_id
+order by id asc
+
+#Output: 
++------+
+| id   |
++------+
+| 4    |
+| 7    |
++------+
+
+################
+#Procurar tweets inválidos aos quais sejam maior que 15 caracteres
+
+select tweet_id
+from tweets
+where length(content)>15
+
+#Output: 
++----------+
+| tweet_id |
++----------+
+| 2        |
++----------+
+
+################
+#Mostrar uma solução que apresenta o unique_Id, se o usuário não tiver o unique_id apenas trocar para null
+
+Select unique_id, name
+from employees
+left join EmployeeUNI
+on employees.id=EmployeeUNI.id
+
+#Output: 
++-----------+----------+
+| unique_id | name     |
++-----------+----------+
+| null      | Alice    |
+| null      | Bob      |
+| 2         | Meir     |
+| 3         | Winston  |
+| 1         | Jonathan |
++-----------+----------+
+
+################
+#Escreva uma solução que devolva o product_name, year e price para cada sale_id na tabela Sales
+
+select product_name, year, price
+from Sales
+left join Product
+on sales.product_id = Product.product_id #aqui mostra a igualdade necessária para fazer um junção de duas tabelas
+
+#Output: 
++--------------+-------+-------+
+| product_name | year  | price |
++--------------+-------+-------+
+| Nokia        | 2008  | 5000  |
+| Nokia        | 2009  | 5000  |
+| Apple        | 2011  | 9000  |
++--------------+-------+-------+
+
+################
+#Procurar os ID que nunca fizeram uma transação e a quantidade de vezes que fizeram esse tipo de visita
+
+select v.customer_id, count(v.visit_id) as count_no_trans #precisa fazer o count e renomear para o resultado
+from Visits v                                             #lembrar que os "apelidos" de tabela são feitos no from e padronizar no código inteiro
+left join Transactions t
+on v.visit_id = t.visit_id
+where t.transaction_id is NULL
+group by v.customer_id;                                   #Sempre quando usar os agregadores exemplo, count será necessário fazer um agrupamento no final do código
+
+#Output: 
++-------------+----------------+
+| customer_id | count_no_trans |
++-------------+----------------+
+| 54          | 2              |
+| 30          | 1              |
+| 96          | 1              |
++-------------+----------------+
+
+################
+#Procurar todas as datas 'id' com maiores temperatudas comparadas a temperatura do dia anterior. Ex. Hoje mais frio que ontem, ou Hoje mais quente que ontem.
+
+SELECT w1.id                                                                            #Selecionou dando apelido já para a tabela
+FROM Weather w1, Weather w2                                                             #Apelidou cada tabela
+WHERE DATEDIFF(w1.recordDate, w2.recordDate) = 1 AND w1.temperature > w2.temperature;   #DATEDIFF ( datepart , startdate , enddate )
+
+#Output: 
++----+
+| id |
++----+
+| 2  |
+| 4  |
++----+
+
+################
+#Todas as máquinas rodam a mesma quantidade de processos. Escreva uma solução que mostra quanto tempo cada máquina usa para completar cada processo.
+#O tempo para completar cada processo é 'end' timestamp menos 'start' timestamp.
+#O tempo médio é calculado pelo total de tempo da máquina para cada processo / número de processos que ela roda
+#Explanation: 
+#There are 3 machines running 2 processes each.
+#Machine 0's average time is ((1.520 - 0.712) + (4.120 - 3.140)) / 2 = 0.894
+#Machine 1's average time is ((1.550 - 0.550) + (1.420 - 0.430)) / 2 = 0.995
+#Machine 2's average time is ((4.512 - 4.100) + (5.000 - 2.500)) / 2 = 1.456
+#O retorno deve vir o machine_id junto de processing_time arredondado para 3 casas decimais.
+
+#Essa parte não é tão intuítiva quanto parece
+select a1.machine_id, round(avg(a2.timestamp-a1.timestamp),3) as processing_time #Aqui uma operação matemática de menos '-' e arrendondamento, deve ser aplicada na relação e renomeada
+from Activity a1
+join Activity a2
+on a1.machine_id=a2.machine_id and a1.process_id=a2.process_id #Igualar quem é quem em cada tabela
+and a1.activity_type='start' and a2.activity_type='end'        #define quem começa e quem termina
+group by a1.machine_id                                         #Como utilizamos avg aqui será necessário fazer o agrupamento
+
+#Output: 
++------------+-----------------+
+| machine_id | processing_time |
++------------+-----------------+
+| 0          | 0.894           |
+| 1          | 0.995           |
+| 2          | 1.456           |
++------------+-----------------+
+
+################
+#Trazer o nome e o bonus de cada empregado que tenha bonus < 1000 
+
+select name, bonus
+from employee
+left join Bonus
+on Employee.empId = Bonus.empId
+where bonus < 1000 or bonus is null   #tem que ser 'ou' não pode ser 'e' exemplo. Ou bonus menor que 1000 ou resultado null. Se fosse e traria as duas condições
+
+#Output: 
++------+-------+
+| name | bonus |
++------+-------+
+| Brad | null  |
+| John | null  |
+| Dan  | 500   |
++------+-------+
+
+################
+#Trazer quantas vezes os estudantes fizeram as provas, tabela deverá ter student_id e subject_name
+#Explicação:
+#A tabela de resultados deve conter todos os alunos e todas as disciplinas.
+#Alice fez 3 vezes a prova de Matemática, 2 vezes a prova de Física e 1 vez a prova de Programação.
+#Bob compareceu 1 vez à prova de Matemática, 1 vez à prova de Programação e não compareceu à prova de Física.
+#Alex não compareceu a nenhum exame.
+#John compareceu 1 vez à prova de Matemática, 1 vez à prova de Física e 1 vez à prova de Programação.
+
+Select                                      #selecionar, apelidar cada coluna de cada tabela
+S.student_id,                               
+S.student_name,
+SUB.subject_name,
+count(E.subject_name) as attended_exams     #contar todos as disciplinas e renomear como attended_exams
+from Students S
+cross join Subjects SUB    #Crossjoin faz cada linha da tabela esquerda ser aplicada para todos os resultados da tabela direita. (Ex. Alice -> Math, Alice -> Physics, Alice -> Programming)
+left join Examinations E
+on S.student_id = E.student_id and SUB.subject_name = e.subject_name #relacionar as 3 tabelas
+group by S.student_id, S.Student_name, SUB.subject_name              #Ao utilizar agregador lebrar de usar group ou order conforme necessário
+order by S.student_id, SUB.subject_name                              #Aqui aprendi que é possível ordenar usando as virgulas e ordem numérica
+
+
+#Output: 
++------------+--------------+--------------+----------------+
+| student_id | student_name | subject_name | attended_exams |
++------------+--------------+--------------+----------------+
+| 1          | Alice        | Math         | 3              |
+| 1          | Alice        | Physics      | 2              |
+| 1          | Alice        | Programming  | 1              |
+| 2          | Bob          | Math         | 1              |
+| 2          | Bob          | Physics      | 0              |
+| 2          | Bob          | Programming  | 1              |
+| 6          | Alex         | Math         | 0              |
+| 6          | Alex         | Physics      | 0              |
+| 6          | Alex         | Programming  | 0              |
+| 13         | John         | Math         | 1              |
+| 13         | John         | Physics      | 1              |
+| 13         | John         | Programming  | 1              |
++------------+--------------+--------------+----------------+
+
+################
+#Escreva uma solução para encontrar gerentes com pelo menos cinco subordinados diretos.
+#Explicações
+#Pode haver várias abordagens para resolver este problema, mas a lógica por trás de tudo é semelhante:
+#Selecione colunas específicas da tabela.
+#SELECT → Este comando recupera dados de um banco de dados
+#AS → Este comando renomeia uma coluna com um alias (nome temporário). Na maioria das linguagens de banco de dados, podemos pular a palavra-chave AS e obter o mesmo resultado
+#Combine a mesma tabela consigo mesma (self-join) para criar relacionamentos entre funcionários e seus gestores.
+#JOIN / INNER JOIN → Esses comandos retornam registros que possuem valores correspondentes em ambas as tabelas
+#LEFT JOIN → Este comando retorna todas as linhas da tabela esquerda (tabela 1) e as linhas correspondentes da tabela direita (tabela 1). O resultado é NULL do lado direito, se não houver correspondência.
+#ON → Isto permite especificar os nomes das colunas para chaves de junção em ambas as tabelas. É usado para unir tabelas onde os nomes das colunas não correspondem em ambas as tabelas.
+#Agrupe os resultados com base em colunas específicas para contar quantos funcionários se reportam a cada gerente.
+#GROUP BY → Este comando agrupa linhas que possuem os mesmos valores em linhas de resumo, normalmente para executar funções agregadas nelas
+#Filtre gerentes com 5 ou mais subordinados diretos.
+#HAVING → Esta cláusula é usada com funções agregadas em vez da palavra-chave WHERE
+#COUNT() → Esta função retorna o número de linhas
+
+select name
+from Employee
+where id in (
+  select managerId
+  from Employee
+  group by managerId
+  having count(managerId)>=5
+)
+
+SELECT e1.name
+FROM employee e1
+LEFT JOIN employee e2 ON e1.id=e2.managerId
+GROUP BY e1.id
+HAVING COUNT(e2.name) >= 5;
+
+SELECT a.name 
+FROM Employee a 
+JOIN Employee b ON a.id = b.managerId 
+GROUP BY b.managerId 
+HAVING COUNT(*) >= 5
+
+SELECT name 
+FROM Employee 
+WHERE id IN (
+    SELECT managerId 
+    FROM Employee 
+    GROUP BY managerId 
+    HAVING COUNT(*) >= 5)
+
+SELECT e.name
+FROM Employee AS e 
+INNER JOIN Employee AS m ON e.id=m.managerId 
+GROUP BY m.managerId 
+HAVING COUNT(m.managerId) >= 5
+
+SELECT emp1.Name 
+FROM Employee emp1
+JOIN (
+  SELECT managerId 
+	FROM Employee
+	GROUP BY managerId
+	HAVING COUNT(managerId) >= 5
+) emp2
+ON emp1.id = emp2.managerId;
+
+#Todas as soluções funcionam
+
+#Output: 
++------+
+| name |
++------+
+| John |
++------+
+
+################
+#Escrever uma solução a qual entregue a confirmation rate de cada usuário.
+#Sendo a confirmation rate é o número de 'confirmed' dividido pelo total de mensagens de confirmação
+#Usuários que não requeriram nenhuma confirmação = 0.
+#Arredonde para 2 casas decimais
+
+select
+s.user_id,
+round(avg(if(c.Action='confirmed',1,0)),2) as confirmation_rate
+from Signups s
+left join Confirmations c using (user_id) 
+group by s.user_id
+
+#Output: 
++---------+-------------------+
+| user_id | confirmation_rate |
++---------+-------------------+
+| 6       | 0.00              |
+| 3       | 0.00              |
+| 7       | 1.00              |
+| 2       | 0.50              |
++---------+-------------------+
+
+################
+#Escreva uma solução que traga todos os números impares que a descrição não seja 'chata'
+#Retorne a tabela ordenada por 'rating' descrescente
+
+select
+id,
+movie,
+description,
+rating
+from Cinema
+where (id%2) <>0
+and description <> 'boring'
+order by rating desc
+
+#Output: 
++----+------------+-------------+--------+
+| id | movie      | description | rating |
++----+------------+-------------+--------+
+| 5  | House card | Interesting | 9.1    |
+| 1  | War        | great 3D    | 8.9    |
++----+------------+-------------+--------+
+
+################
+#Escreva uma solução com a média de preço de cada produto 'average_price' arredondado para 2 casas decimais.
+
+select
+p.product_id,
+ifnull(round(sum(price*units)/sum(units),2),0) as average_price
+from Prices p
+left join UnitsSold u
+on p.product_id = u.product_id
+and u.purchase_date between start_date and end_date
+group by product_id
+
+#Output: 
++------------+---------------+
+| product_id | average_price |
++------------+---------------+
+| 1          | 6.96          |
+| 2          | 16.96         |
++------------+---------------+
+
+################
+#Escreva uma solução que traga a média de experiencia, em anos, dos empregados, para cada projeto, arredondado para 2.
+#Explicação: a média de anos de experiencia para o primeiro projeto é
+# (3 + 2 + 1) / 3 = 2.00 
+#e para o segundo é
+#(3 + 2) / 2 = 2.50
+
+select
+p.project_id,
+ifnull(round(avg(e.experience_years),2),0) as average_years
+from Project p
+left join Employee e
+on p.employee_id=e.employee_id
+group by p.project_id
+
+Output: 
++-------------+---------------+
+| project_id  | average_years |
++-------------+---------------+
+| 1           | 2.00          |
+| 2           | 2.50          |
++-------------+---------------+
+
+################
+#Escrever uma solução que encontre o percentual de usuários registrados em cada consurso arredondado para 2.
+#O resultado deve ser ordenado por percentage decrescente. Em caso de empate ordenar por contest_id na ordem crescente.
+
+select
+contest_id,
+round((count(user_id)/(select count(user_id)from users)) * 100,2) as percentage
+from Register
+group by contest_id
+order by percentage desc, contest_id #por não tem informação aqui sai na ordem crescente como padrão do sql.
+
+################
+#Escreva uma solução que traga cada query_name, quality, poor_query_percentage
+#Define-se quality A média da proporção entre a classificação da consulta e sua posição.
+#Define-se poor_query_percentage queries com classificação inferior a 3 (<3)
+#Explicação: Consulta a qualidade do cão ((5 / 1) + (5 / 2) + (1 / 200)) / 3 = 2.50
+#Consulta se é poor (1 / 3) * 100 = 33.33
+#Consulta a qualidade do gato ((2 / 5) + (3 / 3) + (4 / 7)) / 3 = 0.66
+#Consulta se o gato é poor (1 / 3) * 100 = 33.33 
+
+select
+query_name,
+round(sum(rating /position )/count(*),2) as Quality , #count(*) conta todos
+round(sum(CASE WHEN rating < 3 then 1 else 0 end)/count(*)*100,2) poor_query_percentage 
+from Queries
+group by query_name
+
+#Input: 
+Queries table:
++------------+-------------------+----------+--------+
+| query_name | result            | position | rating |
++------------+-------------------+----------+--------+
+| Dog        | Golden Retriever  | 1        | 5      |
+| Dog        | German Shepherd   | 2        | 5      |
+| Dog        | Mule              | 200      | 1      |
+| Cat        | Shirazi           | 5        | 2      |
+| Cat        | Siamese           | 3        | 3      |
+| Cat        | Sphynx            | 7        | 4      |
++------------+-------------------+----------+--------+
+
+#Output: 
++------------+---------+-----------------------+
+| query_name | quality | poor_query_percentage |
++------------+---------+-----------------------+
+| Dog        | 2.50    | 33.33                 |
+| Cat        | 0.66    | 33.33                 |
++------------+---------+-----------------------+
+
+################
+#Escreva uma query que encontre cada mês e país, o número de transações e o montante total, o número de transações aprovadas e o montante total.
+
+#Solução 1
+select
+substr(trans_date, 1,7) as month, #substr consegue pegar a coluna 'trans_sate' e trazer do primeiro caracter até o sétimo
+country,
+COUNT(id) as trans_count,
+sum(case when state = 'approved' then 1 else 0 end) as approved_count,
+sum(amount) as trans_total_amount,
+sum(case when state = 'approved' then amount else 0 end) as approved_total_amount #após ter contado as transações, somado se aprovado, somado o total, se soma apenas o total aprovado
+from Transactions
+group by month, country
+
+#Solução 2
+SELECT
+  DATE_FORMAT(trans_date, '%Y-%m') AS month, #date_format traz a modificação para o formato que precisa, atenção para maísculo e minúsculo faz diferença --> Consultar: https://www.w3schools.com/sql/func_mysql_date_format.asp
+  country,
+  COUNT(*) AS trans_count,
+  SUM(IF(state = 'approved', 1, 0)) AS approved_count, 
+  SUM(amount) AS trans_total_amount,
+  SUM(IF(state = 'approved', amount, 0)) AS approved_total_amount
+FROM Transactions
+GROUP BY DATE_FORMAT(trans_date, '%Y-%m'), country;
+
+#Output: 
++----------+---------+-------------+----------------+--------------------+-----------------------+
+| month    | country | trans_count | approved_count | trans_total_amount | approved_total_amount |
++----------+---------+-------------+----------------+--------------------+-----------------------+
+| 2018-12  | US      | 2           | 1              | 3000               | 1000                  |
+| 2019-01  | US      | 1           | 1              | 2000               | 2000                  |
+| 2019-01  | DE      | 1           | 1              | 2000               | 2000                  |
++----------+---------+-------------+----------------+--------------------+-----------------------+
+
+################
+#entrega no mesmo dia = imeadiato se não agendada
+#Um mesmo consumidor pode ter feito mais de 1 pedido
+#Faça um percentual de pedidos imediatos de todos os consumidores, arredonado para 2 decimais
+
+#Solução 1
+Select
+round(100*sum(case when b.min_oder_date = b.min_delivery_date then 1 else 0 end)/count(*), 2) as immediate_percentage
+From 
+(select 
+    min(order_date) as min_oder_date,
+    min(customer_pref_delivery_date) as min_delivery_date
+from delivery
+group by customer_id
+) b;
+#Case when explicação: A expressão retorna o resultado quando a condição é encontrada, então se a condição for 'true' ele para de ler e retorna o resultado.
+#Se nenhuma condição é verdadeira, vai retornar o valor na clausula 'else'. E se não tiver nenhum 'else' e nenhuma condição de 'true' neste caso retorna 'null'.
+
+#Solução 2
+SELECT Round((100.00*COUNT(case when order_date = customer_pref_delivery_date then 1 end))/COUNT(customer_id),2) AS immediate_percentage
+FROM (SELECT *, 
+      RANK() OVER (PARTITION BY customer_id ORDER BY order_date) AS rank 
+      FROM Delivery) AS data
+WHERE rank = 1
+#Rank () Over(partition by) explicação: A função RANK vai ranquear, deve-se usar a asc ou desc. A função OVER vai terminar o cálculo na mesma linha ou função.
+#A função partition by vai particionar o resultado desejado em colunas, que poderão ser agrupadas. (carece de mais explicação)
