@@ -1,7 +1,7 @@
 Caracter especial no Marketing Cloud da Salesforce
 
-A linha abaixo simula as situações aceitas pelo Marketing Cloud
-Use em uma De de texte para limpar os caracteres conforme o CHAR(_exemple_) ''
+A linha abaixo simula as situações aceitas pelo Marketing Cloud.
+Use em uma DE de teste para limpar os caracteres conforme o CHAR(_exemple_) ''
 
 !"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]^_`abcdefghijklmnopqrstuvwxyz{|}~¡¢£¤¥¦§̈¨©ª«¬®̄¯°±²³́´μ¶·̧¸¹º»1⁄41⁄23⁄4¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿ
 
