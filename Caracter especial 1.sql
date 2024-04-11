@@ -257,4 +257,4 @@ CHAR(253), ''),
 CHAR(254), ''),
 CHAR(255), '')
     
-from LP_MERCADO_LIVRE_Disparo_Copy
+from ____________
